@@ -499,6 +499,8 @@ target_sources(app-lib PRIVATE
   commands/cmd_unlink_cel.cpp
   commands/cmd_widget_zoo.cpp
   commands/cmd_zoom.cpp
+  commands/cmd_wc_workspace.cpp
+  wildconquest/wc_workspace.cpp
   commands/command.cpp
   commands/commands.cpp
   commands/convert_layer.cpp

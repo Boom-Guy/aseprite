@@ -736,6 +736,13 @@
         <separator group="file_app" />
         <item command="Exit" text="@.file_exit" />
       </menu>
+      <menu text="Wild Conquest" id="wildconquest_menu">
+        <item command="OpenWcWorkspace" text="Open Workspace..." />
+        <item command="SaveAsWcWorkspace" text="Save as Workspace..." />
+        <separator />
+        <item command="SyncToSkelForm" text="Sync to SkelForm" />
+        <item command="RefreshFromWcWorkspace" text="Refresh from Workspace" />
+      </menu>
       <menu text="@.edit" id="edit_menu" standard="edit">
         <item command="Undo" text="@.edit_undo" />
         <item command="Redo" text="@.edit_redo" />
