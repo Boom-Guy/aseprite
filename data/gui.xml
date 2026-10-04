@@ -740,8 +740,19 @@
         <item command="OpenWcWorkspace" text="Open Workspace..." />
         <item command="SaveAsWcWorkspace" text="Save as Workspace..." />
         <separator />
-        <item command="SyncToSkelForm" text="Sync to SkelForm" />
-        <item command="RefreshFromWcWorkspace" text="Refresh from Workspace" />
+        <menu text="Create Template Layers">
+          <item command="CreateWcLayersTemplate" text="Humanoid Standard">
+            <param name="template" value="humanoid" />
+          </item>
+          <item command="CreateWcLayersTemplate" text="Winged Humanoid">
+            <param name="template" value="winged_humanoid" />
+          </item>
+        </menu>
+        <separator />
+        <item command="SyncAnimFromWorkspace" text="Sync Animation from Workspace..." />
+        <item command="ExportPolishedAnim" text="Export Polished Animation / Sprite Sheet..." />
+        <separator />
+        <item command="ValidateWcWorkspace" text="Validate Workspace" />
       </menu>
       <menu text="@.edit" id="edit_menu" standard="edit">
         <item command="Undo" text="@.edit_undo" />

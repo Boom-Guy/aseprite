@@ -187,8 +187,10 @@ FOR_EACH_COMMAND(Zoom)
 
 FOR_EACH_COMMAND(OpenWcWorkspace)
 FOR_EACH_COMMAND(SaveAsWcWorkspace)
-FOR_EACH_COMMAND(SyncToSkelForm)
-FOR_EACH_COMMAND(RefreshFromWcWorkspace)
+FOR_EACH_COMMAND(SyncAnimFromWorkspace)
+FOR_EACH_COMMAND(ExportPolishedAnim)
+FOR_EACH_COMMAND(ValidateWcWorkspace)
+FOR_EACH_COMMAND(CreateWcLayersTemplate)
 
 #ifdef ENABLE_SCRIPTING
 FOR_EACH_COMMAND(Debugger)

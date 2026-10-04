@@ -1,0 +1,11 @@
+{
+  "name": "com.wildconquest.wcworkspace",
+  "version": "2.0.0",
+  "displayName": "Wild Conquest — wcworkspace Pipeline",
+  "description": "Round-trip asset interchange pipeline between Aseprite and Unity for Wild Conquest.",
+  "unity": "2022.3",
+  "author": {
+    "name": "Wild Conquest Team"
+  },
+  "dependencies": {}
+}

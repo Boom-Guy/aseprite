@@ -1,4 +1,4 @@
-// Wild Conquest - Shared Workspace Module
+// Wild Conquest - Shared Workspace Module (v2 Round-Trip Pipeline)
 // Copyright (C) 2026 Wild Conquest Team
 
 #ifndef APP_WILDCONQUEST_WC_WORKSPACE_H_INCLUDED
@@ -37,43 +37,57 @@ struct WcVec2 {
 struct WcPart {
   std::string id;
   std::string name;
-  std::string asset; // e.g. "parts/head.png"
-  WcVec2 pivot{0.0, 0.0};
+  std::string asset; // Relative path, e.g. "source/parts/head.png"
+  WcVec2 pivot{32.0, 32.0};
   int zIndex = 0;
   bool visible = true;
 };
 
-struct WcWorkspaceManifest {
-  std::string format = "wcworkspace";
-  int version = 1;
-  std::string workspaceId;
+struct WcCharacterConfig {
+  std::string id;
   std::string name;
-  std::string character;
-  WcCanvas canvas{64, 64};
-  int pixelScale = 1;
-  std::string facing = "right";
-  int groundY = 59;
   std::vector<WcPart> parts;
 };
 
-struct WcPartSyncInfo {
-  int version = 1;
-  std::string hash;
-  std::string source = "aseprite";
+struct WcSourceInfo {
+  std::string type = "aseprite";
 };
 
-struct WcAnimSyncInfo {
-  int version = 1;
-  std::string source = "skelform";
+struct WcWorkspaceConfig {
+  std::string format = "wcworkspace";
+  int version = 2;
+  std::string workspaceId;
+  std::string characterId;
+  std::string characterName;
+  WcCanvas canvas{64, 64};
+  int pixelScale = 1;
+  std::string facing = "right";
+  WcSourceInfo source{"aseprite"};
+};
+
+struct WcAnimationConfig {
+  std::string id;
+  std::string name;
+  int fps = 12;
   int frameCount = 0;
-  std::string hash;
+  WcCanvas canvas{64, 64};
+  std::string source = "unity";
+  std::string status = "not_generated"; // not_generated, generated, polishing, polished, imported_to_unity
 };
 
-struct WcSyncManifest {
-  int version = 1;
-  std::string lastSyncTime;
-  std::map<std::string, WcPartSyncInfo> parts;
-  std::map<std::string, WcAnimSyncInfo> animations;
+struct WcAnimManifestItem {
+  std::string status = "not_generated";
+  std::string generatedHash;
+  std::string polishedHash;
+  std::string spriteSheetHash;
+  int frameCount = 0;
+};
+
+struct WcManifest {
+  int version = 2;
+  std::string lastModified;
+  std::map<std::string, std::string> sourceParts; // partId -> sha256
+  std::map<std::string, WcAnimManifestItem> animations; // animId -> manifest item
 };
 
 class WcWorkspace {
@@ -83,34 +97,50 @@ public:
 
   bool isOpen() const { return !m_workspaceDir.empty(); }
   const std::string& workspaceDir() const { return m_workspaceDir; }
-  const WcWorkspaceManifest& manifest() const { return m_manifest; }
-  const WcSyncManifest& syncManifest() const { return m_sync; }
+  const WcWorkspaceConfig& config() const { return m_config; }
+  const WcCharacterConfig& character() const { return m_character; }
+  const WcManifest& manifest() const { return m_manifest; }
 
-  // File I/O
+  // File I/O & Creation
   bool open(const std::string& dirPath, std::string& errorMsg);
-  bool save(std::string& errorMsg);
   bool createNew(const std::string& dirPath, const std::string& characterName, int width, int height, std::string& errorMsg);
+  bool save(std::string& errorMsg);
 
-  // Sync operations from Aseprite
-  bool exportLayersToWorkspace(app::Doc* doc, std::string& outSummary, std::string& errorMsg);
-  bool syncToSkelForm(app::Doc* doc, std::string& outSummary, std::string& errorMsg);
-  bool refreshFromWorkspace(app::Doc* doc, app::Context* ctx, std::string& outSummary, std::string& errorMsg);
+  // Aseprite Export -> Workspace
+  bool exportCharacterParts(app::Doc* doc, std::string& outSummary, std::string& errorMsg);
 
-  // Helper for computing file hash
-  static std::string calculateFileHash(const std::string& filePath);
-  static std::string calculateBufferHash(const uint8_t* data, size_t size);
+  // Sync Animation from Unity/Workspace into Aseprite
+  bool getAvailableAnimations(std::vector<std::string>& outAnimIds, std::string& errorMsg) const;
+  bool syncAnimationToAseprite(const std::string& animId, app::Context* ctx, std::string& outSummary, std::string& errorMsg);
+
+  // Aseprite Polish -> Export Polished Frames & Sprite Sheet
+  bool exportPolishedAnimation(app::Doc* doc, const std::string& animId, bool overwritePolished, std::string& outSummary, std::string& errorMsg);
+
+  // Validation
+  bool validate(std::vector<std::string>& outErrors, std::vector<std::string>& outWarnings) const;
+
+  // SHA-256 Hashing helpers
+  static std::string calculateFileSha256(const std::string& filePath);
+  static std::string calculateBufferSha256(const uint8_t* data, size_t size);
 
 private:
   std::string m_workspaceDir;
-  WcWorkspaceManifest m_manifest;
-  WcSyncManifest m_sync;
+  WcWorkspaceConfig m_config;
+  WcCharacterConfig m_character;
+  WcManifest m_manifest;
 
-  bool loadManifest(std::string& errorMsg);
-  bool saveManifest(std::string& errorMsg);
-  bool loadSyncManifest(std::string& errorMsg);
-  bool saveSyncManifest(std::string& errorMsg);
+  bool loadWorkspaceJson(std::string& errorMsg);
+  bool saveWorkspaceJson(std::string& errorMsg);
 
-  // Atomic writing helpers
+  bool loadCharacterJson(std::string& errorMsg);
+  bool saveCharacterJson(std::string& errorMsg);
+
+  bool loadManifestJson(std::string& errorMsg);
+  bool saveManifestJson(std::string& errorMsg);
+
+  bool loadAnimJson(const std::string& animId, WcAnimationConfig& outConfig, std::string& errorMsg) const;
+  bool saveAnimJson(const std::string& animId, const WcAnimationConfig& animConfig, std::string& errorMsg);
+
   bool commitTempFile(const std::string& tempPath, const std::string& finalPath);
 };
 
@@ -120,3 +150,4 @@ WcWorkspace& getActiveWorkspace();
 } // namespace wildconquest
 
 #endif
+
